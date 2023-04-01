@@ -6,6 +6,9 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var textLabel: UILabel!
     
+    @IBOutlet weak var noButton: UIButton!
+    @IBOutlet weak var yesButton: UIButton!
+    
     private var currentQuestionIndex: Int = 0
     private var correctAnswers: Int = 0
 
@@ -130,17 +133,30 @@ final class MovieQuizViewController: UIViewController {
             imageView.layer.borderWidth = 8
             imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                self.showNextQuestionOrResults()
            }
 
     }
     
+    private func makeButtonsInactive() {
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
+    }
+    
+    private func makeButtonsActive() {
+        yesButton.isEnabled = true
+        noButton.isEnabled = true
+    }
+    
+    
     @IBAction private func yesButtonClicked(_ sender: Any) {
         
         let currentQuestion = questions[currentQuestionIndex]
            let givenAnswer = true
            showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        makeButtonsInactive()
     }
 
     @IBAction private func noButtonClicked(_ sender: Any) {
@@ -148,9 +164,13 @@ final class MovieQuizViewController: UIViewController {
         let currentQuestion = questions[currentQuestionIndex]
            let givenAnswer = false
            showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        makeButtonsInactive()
     }
 
+   
+    
     private func showNextQuestionOrResults() {
+        makeButtonsActive()
         if currentQuestionIndex == questions.count - 1 {
             let text = "Ваш результат: \(correctAnswers) из 10"
             let viewModel = QuizResultsViewModel(
