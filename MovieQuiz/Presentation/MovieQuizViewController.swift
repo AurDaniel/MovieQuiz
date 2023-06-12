@@ -73,6 +73,7 @@ final class MovieQuizViewController: UIViewController {
     
     private func showNextQuestionOrRoundResults() {
         makeButtonsActive()
+        
         if currentQuestionIndex == questionsAmount - 1 {
             guard let statisticService = statisticService else { return }
             statisticService.store(correct: correctAnswers, total: questionsAmount)
