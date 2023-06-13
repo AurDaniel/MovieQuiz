@@ -91,7 +91,7 @@
                                                     </userDefinedRuntimeAttribute>
                                                 </userDefinedRuntimeAttributes>
                                                 <connections>
-                                                    <action selector="noButtonClicked:" destination="BYZ-38-t0r" eventType="touchDown" id="03e-J6-J94"/>
+                                                    <action selector="noButtonClicked" destination="BYZ-38-t0r" eventType="touchDown" id="wa0-H0-Js1"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qDO-Vo-WDm" userLabel="Yes button">
@@ -109,7 +109,7 @@
                                                     </userDefinedRuntimeAttribute>
                                                 </userDefinedRuntimeAttributes>
                                                 <connections>
-                                                    <action selector="yesButtonClicked:" destination="BYZ-38-t0r" eventType="touchDown" id="sny-Yf-5b6"/>
+                                                    <action selector="yesButtonClicked" destination="BYZ-38-t0r" eventType="touchDown" id="YG2-5c-gYF"/>
                                                 </connections>
                                             </button>
                                         </subviews>
