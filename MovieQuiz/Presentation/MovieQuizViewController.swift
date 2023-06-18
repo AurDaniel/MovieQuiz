@@ -21,7 +21,6 @@ final class MovieQuizViewController: UIViewController {
     private var statisticService: StatisticServiceProtocol?
     
     
-    
 // MARK: Методы
 
     private func showLoadingIndicator() {
