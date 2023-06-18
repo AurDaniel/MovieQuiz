@@ -1,5 +1,22 @@
 import Foundation
 
+public enum CustomError: Error {
+    case emptyItems(errorMessage: String)
+    case imageLoadError
+}
+
+extension CustomError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .emptyItems(let errorMessage):
+            return NSLocalizedString(errorMessage, comment: "Client error")
+        case .imageLoadError:
+            return NSLocalizedString("Image load error", comment: "Image load error")
+        }
+    }
+}
+
+
 final class QuestionFactory: QuestionFactoryProtocol {
     
     private let moviesLoader: MoviesLoading
@@ -11,6 +28,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
     }
     
     private var movies: [MostPopularMovie] = []
+    
     
     //   private let questions: [QuizQuestion] = [
     //            QuizQuestion(
@@ -69,6 +87,9 @@ final class QuestionFactory: QuestionFactoryProtocol {
                 imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
                 print("Failed to load image")
+                let error: Error = CustomError.imageLoadError
+                self.delegate?.didFailToLoadImage(with: error)
+                return
             }
             
             let rating = Float(movie.rating) ?? 0

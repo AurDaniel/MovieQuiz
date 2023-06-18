@@ -23,21 +23,72 @@ final class MovieQuizViewController: UIViewController {
     
     
 // MARK: Методы
-    
-    internal func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
-    
-    func didLoadDataFromServer() {
-        activityIndicator.isHidden = true
-        questionFactory?.requestNextQuestion()
-    }
-    
+
     private func showLoadingIndicator() {
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
     }
+    
+    private func showNetworkError(message: String) {
+        activityIndicator.stopAnimating()
+        let alertModel = AlertModel(title: "Ошибка",
+                        message: message,
+                        buttonText: "Попробовать еще раз") { [weak self] in
+            guard let self = self else { return }
+            
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            
+            self.questionFactory?.requestNextQuestion()
+        }
         
+        alertPresenter?.showAlert(model: alertModel)
+    }
+    
+    private func showImageLoadError(message: String) {
+        let alertModel = AlertModel(
+              title: "Ошибка",
+              message: message,
+              buttonText: "Попробовать ещё раз",
+              completion: { [weak self] in
+                  self?.showNextQuestionOrRoundResults()
+              })
+          alertPresenter?.showAlert(model: alertModel)
+      }
+    
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+        return QuizStepViewModel(
+            image: UIImage(data: model.image) ?? UIImage(),
+            question: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
+    }
+    
+    private func show(quiz model: QuizStepViewModel) {
+        imageView.image = model.image
+        textLabel.text = model.question
+        counterLabel.text = model.questionNumber
+        imageView.layer.cornerRadius = 20
+        imageView.layer.borderWidth = 0
+        
+    }
+    
+    private func showAnswerResult(isCorrect: Bool) {
+        imageView.layer.borderWidth = 8
+        
+        if isCorrect {
+            correctAnswers += 1
+            imageView.layer.borderColor = UIColor.ypGreen.cgColor
+        } else {
+            imageView.layer.borderColor = UIColor.ypRed.cgColor
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            self.showNextQuestionOrRoundResults()
+
+        }
+    }
+    
     private func makeButtonsInactive() {
             yesButton.isEnabled = false
             noButton.isEnabled = false
@@ -78,55 +129,6 @@ final class MovieQuizViewController: UIViewController {
                 questionFactory?.requestNextQuestion()
             }
         }
-    
-    private func showNetworkError(message: String) {
-        activityIndicator.stopAnimating()
-        let alertModel = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз") { [weak self] in
-            guard let self = self else { return }
-            
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-            
-            self.questionFactory?.requestNextQuestion()
-        }
-        
-        alertPresenter?.showAlert(model: alertModel)
-    }
-    
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        return QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-    }
-    
-    private func show(quiz model: QuizStepViewModel) {
-        imageView.image = model.image
-        textLabel.text = model.question
-        counterLabel.text = model.questionNumber
-        imageView.layer.cornerRadius = 20
-        imageView.layer.borderWidth = 0
-        
-    }
-    
-    private func showAnswerResult(isCorrect: Bool) {
-        imageView.layer.borderWidth = 8
-        
-        if isCorrect {
-            correctAnswers += 1
-            imageView.layer.borderColor = UIColor.ypGreen.cgColor
-        } else {
-            imageView.layer.borderColor = UIColor.ypRed.cgColor
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
-            self.showNextQuestionOrRoundResults()
-
-        }
-    }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -177,5 +179,22 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
             self?.show(quiz: viewModel)
         }
     }
+    
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
+    }
+    
+    func didLoadDataFromServer() {
+        activityIndicator.isHidden = true
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadImage(with error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            self?.makeButtonsInactive()
+            self?.activityIndicator.stopAnimating()
+            self?.currentQuestionIndex -= 1
+            self?.showImageLoadError(message: error.localizedDescription)
+        }
+    }
 }
-
