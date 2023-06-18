@@ -9,6 +9,7 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var yesButton: UIButton!
+    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
     private var currentQuestionIndex: Int = 0
     private var correctAnswers: Int = 0
@@ -20,11 +21,83 @@ final class MovieQuizViewController: UIViewController {
     private var statisticService: StatisticServiceProtocol?
     
     
+    
 // MARK: Методы
+    
+    internal func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
+    }
+    
+    func didLoadDataFromServer() {
+        activityIndicator.isHidden = true
+        questionFactory?.requestNextQuestion()
+    }
+    
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+        
+    private func makeButtonsInactive() {
+            yesButton.isEnabled = false
+            noButton.isEnabled = false
+          }
+
+    private func makeButtonsActive() {
+            yesButton.isEnabled = true
+            noButton.isEnabled = true
+          }
+        
+    private func showNextQuestionOrRoundResults() {
+            makeButtonsActive()
+            
+            if currentQuestionIndex == questionsAmount - 1 {
+                guard let statisticService = statisticService else { return }
+                statisticService.store(correct: correctAnswers, total: questionsAmount)
+                let date = statisticService.bestGame.date.dateTimeString
+                let totalAccuracy = (String(format: "%.2f", statisticService.totalAccuracy) + "%")
+                let message = """
+                       Ваш результат: \(correctAnswers)/\(questionsAmount)\n\
+                       Количесство сыгранных квизов: \(statisticService.gamesCount)
+                       Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(date))
+                       Средняя точность: \(totalAccuracy)
+                   """
+                let alertModel = AlertModel(
+                    title: "Этот раунд окончен!",
+                    message: message,
+                    buttonText: "Сыграть ещё раз",
+                    completion: { [weak self] in
+                        guard let self = self else { return }
+                        self.currentQuestionIndex = 0
+                        self.correctAnswers = 0
+                        self.questionFactory?.requestNextQuestion()
+                    })
+                alertPresenter?.showAlert(model: alertModel)
+            } else {
+                currentQuestionIndex += 1
+                questionFactory?.requestNextQuestion()
+            }
+        }
+    
+    private func showNetworkError(message: String) {
+        activityIndicator.stopAnimating()
+        let alertModel = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз") { [weak self] in
+            guard let self = self else { return }
+            
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            
+            self.questionFactory?.requestNextQuestion()
+        }
+        
+        alertPresenter?.showAlert(model: alertModel)
+    }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
@@ -58,64 +131,22 @@ final class MovieQuizViewController: UIViewController {
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
-    
-// MARK: Отключение кнопок
-    
-    private func makeButtonsInactive() {
-          yesButton.isEnabled = false
-          noButton.isEnabled = false
-      }
-
-      private func makeButtonsActive() {
-          yesButton.isEnabled = true
-          noButton.isEnabled = true
-      }
-    
-    private func showNextQuestionOrRoundResults() {
-        makeButtonsActive()
-        
-        if currentQuestionIndex == questionsAmount - 1 {
-            guard let statisticService = statisticService else { return }
-            statisticService.store(correct: correctAnswers, total: questionsAmount)
-            let date = statisticService.bestGame.date.dateTimeString
-            let totalAccuracy = (String(format: "%.2f", statisticService.totalAccuracy) + "%")
-            let message = """
-                   Ваш результат: \(correctAnswers)/\(questionsAmount)\n\
-                   Количесство сыгранных квизов: \(statisticService.gamesCount)
-                   Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(date))
-                   Средняя точность: \(totalAccuracy)
-               """
-            let alertModel = AlertModel(
-                title: "Этот раунд окончен!",
-                message: message,
-                buttonText: "Сыграть ещё раз",
-                completion: { [weak self] in
-                    guard let self = self else { return }
-                    self.currentQuestionIndex = 0
-                    self.correctAnswers = 0
-                    self.questionFactory?.requestNextQuestion()
-                })
-            alertPresenter?.showAlert(model: alertModel)
-        } else {
-            currentQuestionIndex += 1
-            questionFactory?.requestNextQuestion()
-        }
-    }
         
 // MARK: Загрузка вьюшки
     
     override func viewDidLoad() {
-            super.viewDidLoad()
-            
-            imageView.layer.masksToBounds = true
-            imageView.layer.cornerRadius = 20
-            
-            questionFactory = QuestionFactory(delegate: self)
-            questionFactory?.requestNextQuestion()
-            alertPresenter = AlertPresenter(delegate: self)
-            statisticService = StatisticServiceImplementation()
-        }
-    
+        super.viewDidLoad()
+        
+        imageView.layer.masksToBounds = true
+        imageView.layer.cornerRadius = 20
+        
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        alertPresenter = AlertPresenter(delegate: self)
+        statisticService = StatisticServiceImplementation()
+
+        showLoadingIndicator()
+        questionFactory?.loadData()
+    }
     
 //MARK: Кнопки
     
