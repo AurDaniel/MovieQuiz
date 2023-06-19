@@ -52,7 +52,7 @@ final class StatisticServiceImplementation: StatisticServiceProtocol {
     var bestGame: GameRecord {
         get {
             guard let data = userDefaults.data(forKey: Keys.bestGame.rawValue),
-            let record = try? JSONDecoder().decode(GameRecord.self, from: data) else {
+                  let record = try? JSONDecoder().decode(GameRecord.self, from: data) else {
                 return .init(correct: 0, total: 0, date: Date())
             }
             
@@ -72,11 +72,11 @@ final class StatisticServiceImplementation: StatisticServiceProtocol {
         gamesCount += 1
         correct += Double(count)
         total += Double(amount)
-
+        
         let currentGameRecord = GameRecord(correct: count, total: amount, date: Date())
         if bestGame < currentGameRecord {
             bestGame = currentGameRecord
         }
     }
-
+    
 }

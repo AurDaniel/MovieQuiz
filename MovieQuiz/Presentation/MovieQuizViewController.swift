@@ -2,7 +2,7 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController {
     
-// MARK: Аутлеты
+    // MARK: Аутлеты
     
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var counterLabel: UILabel!
@@ -21,8 +21,8 @@ final class MovieQuizViewController: UIViewController {
     private var statisticService: StatisticServiceProtocol?
     
     
-// MARK: Методы
-
+    // MARK: Методы
+    
     private func showLoadingIndicator() {
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
@@ -31,8 +31,8 @@ final class MovieQuizViewController: UIViewController {
     private func showNetworkError(message: String) {
         activityIndicator.stopAnimating()
         let alertModel = AlertModel(title: "Ошибка",
-                        message: message,
-                        buttonText: "Попробовать еще раз") { [weak self] in
+                                    message: message,
+                                    buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
             
             self.currentQuestionIndex = 0
@@ -46,14 +46,14 @@ final class MovieQuizViewController: UIViewController {
     
     private func showImageLoadError(message: String) {
         let alertModel = AlertModel(
-              title: "Ошибка",
-              message: message,
-              buttonText: "Попробовать ещё раз",
-              completion: { [weak self] in
-                  self?.showNextQuestionOrRoundResults()
-              })
-          alertPresenter?.showAlert(model: alertModel)
-      }
+            title: "Ошибка",
+            message: message,
+            buttonText: "Попробовать ещё раз",
+            completion: { [weak self] in
+                self?.showNextQuestionOrRoundResults()
+            })
+        alertPresenter?.showAlert(model: alertModel)
+    }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
@@ -84,56 +84,56 @@ final class MovieQuizViewController: UIViewController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.showNextQuestionOrRoundResults()
-
+            
         }
     }
     
     private func makeButtonsInactive() {
-            yesButton.isEnabled = false
-            noButton.isEnabled = false
-          }
-
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
+    }
+    
     private func makeButtonsActive() {
-            yesButton.isEnabled = true
-            noButton.isEnabled = true
-          }
-        
+        yesButton.isEnabled = true
+        noButton.isEnabled = true
+    }
+    
     private func showNextQuestionOrRoundResults() {
-            makeButtonsActive()
-            
-            if currentQuestionIndex == questionsAmount - 1 {
-                guard let statisticService = statisticService else { return }
-                statisticService.store(correct: correctAnswers, total: questionsAmount)
-                let date = statisticService.bestGame.date.dateTimeString
-                let totalAccuracy = (String(format: "%.2f", statisticService.totalAccuracy) + "%")
-                let message = """
+        makeButtonsActive()
+        
+        if currentQuestionIndex == questionsAmount - 1 {
+            guard let statisticService = statisticService else { return }
+            statisticService.store(correct: correctAnswers, total: questionsAmount)
+            let date = statisticService.bestGame.date.dateTimeString
+            let totalAccuracy = (String(format: "%.2f", statisticService.totalAccuracy) + "%")
+            let message = """
                        Ваш результат: \(correctAnswers)/\(questionsAmount)\n\
                        Количесство сыгранных квизов: \(statisticService.gamesCount)
                        Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(date))
                        Средняя точность: \(totalAccuracy)
                    """
-                let alertModel = AlertModel(
-                    title: "Этот раунд окончен!",
-                    message: message,
-                    buttonText: "Сыграть ещё раз",
-                    completion: { [weak self] in
-                        guard let self = self else { return }
-                        self.currentQuestionIndex = 0
-                        self.correctAnswers = 0
-                        self.questionFactory?.requestNextQuestion()
-                    })
-                alertPresenter?.showAlert(model: alertModel)
-            } else {
-                currentQuestionIndex += 1
-                questionFactory?.requestNextQuestion()
-            }
+            let alertModel = AlertModel(
+                title: "Этот раунд окончен!",
+                message: message,
+                buttonText: "Сыграть ещё раз",
+                completion: { [weak self] in
+                    guard let self = self else { return }
+                    self.currentQuestionIndex = 0
+                    self.correctAnswers = 0
+                    self.questionFactory?.requestNextQuestion()
+                })
+            alertPresenter?.showAlert(model: alertModel)
+        } else {
+            currentQuestionIndex += 1
+            questionFactory?.requestNextQuestion()
         }
+    }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
-        
-// MARK: Загрузка вьюшки
+    
+    // MARK: Загрузка вьюшки
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -144,24 +144,24 @@ final class MovieQuizViewController: UIViewController {
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         alertPresenter = AlertPresenter(delegate: self)
         statisticService = StatisticServiceImplementation()
-
+        
         showLoadingIndicator()
         questionFactory?.loadData()
     }
     
-//MARK: Кнопки
+    //MARK: Кнопки
     
-@IBAction private func noButtonClicked() {
+    @IBAction private func noButtonClicked() {
         guard let currentQuestion = currentQuestion else { return }
-   
+        
         let correctAnswer: Bool = currentQuestion.correctAnswer
         showAnswerResult(isCorrect: correctAnswer == false)
         makeButtonsInactive()
     }
     
-@IBAction private func yesButtonClicked() {
+    @IBAction private func yesButtonClicked() {
         guard let currentQuestion = currentQuestion else { return }
-      
+        
         let correctAnswer: Bool = currentQuestion.correctAnswer
         showAnswerResult(isCorrect: correctAnswer == true)
         makeButtonsInactive()
