@@ -20,7 +20,7 @@ extension CustomError: LocalizedError {
 final class QuestionFactory: QuestionFactoryProtocol {
     
     private let moviesLoader: MoviesLoading
-    private weak var delegate: QuestionFactoryDelegate?
+    private var delegate: QuestionFactoryDelegate?
     
     init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate?) {
         self.moviesLoader = moviesLoader
