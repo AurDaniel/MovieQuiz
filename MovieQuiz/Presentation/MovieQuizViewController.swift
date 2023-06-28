@@ -42,7 +42,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     
     // MARK: Методы
     
-     func show(quiz model: QuizStepViewModel) {
+    func show(quiz model: QuizStepViewModel) {
         imageView.image = model.image
         textLabel.text = model.question
         counterLabel.text = model.questionNumber
@@ -89,8 +89,8 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         hideLoadingIndicator()
         
         let alertModel = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз") { [weak self] in
+                                    message: message,
+                                    buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
             self.presenter.restartGame()
         }
@@ -102,8 +102,8 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         hideLoadingIndicator()
         
         let alertModel = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз") { [weak self] in
+                                    message: message,
+                                    buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
             self.presenter.restartGame()
         }

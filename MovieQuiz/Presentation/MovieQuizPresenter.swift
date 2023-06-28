@@ -63,7 +63,9 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     func didAnswer(isCorrectAnswer: Bool) {
-        correctAnswers += 1
+        if isCorrectAnswer {
+            correctAnswers += 1
+        }
     }
     
     func isLastQuestion() -> Bool {
